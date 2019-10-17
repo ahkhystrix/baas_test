@@ -1,0 +1,11 @@
+.terraform/
+.tfplan
+*.tfstate
+*.tfstate.backup
+terraform.d/
+terraform.tfvars
+.env
+.pem
+.json
+.swo
+
