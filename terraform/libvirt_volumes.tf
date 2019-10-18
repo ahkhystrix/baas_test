@@ -11,6 +11,7 @@ resource "libvirt_volume" "vm" {
   name           = format("%s%d", var.project["vm_name"], count.index + 1)
   pool           = libvirt_pool.volumes.name
   base_volume_id = libvirt_volume.os_image.id
+  size           = var.project["vm_size"]
   format         = "qcow2"
 }
 

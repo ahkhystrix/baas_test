@@ -3,6 +3,7 @@
     apt:
       name: "{{ packages }}"
       update_cache: yes
+      state: present
     vars:
       packages:
       - apt-transport-https
@@ -10,6 +11,7 @@
       - curl
       - gnupg-agent
       - software-properties-common
+      - python-pip
   - name: Add Docker’s official GPG key
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
@@ -23,9 +25,21 @@
     apt:
       name: "{{ packages }}"
       update_cache: yes
+      state: present
     vars:
       packages:
       - docker-ce
       - docker-ce-cli
       - containerd.io
+  - name: Install certain python modules for docker
+    pip:
+      name: docker-py
+  - name: Install and start centos-xfce-vnc
+    docker_container:
+      name: centos-xfce-vnc
+      image: consol/centos-xfce-vnc
+      state: started
+      ports: 
+      - 5901:5901
+      - 6901:6902
 
