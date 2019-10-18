@@ -4,7 +4,7 @@ variable "project" {
   default     = {
     vm_name   = "baas_test"
     vm_vcpu   = 1
-    vm_memory = "256"
+    vm_memory = "480"
     vm_os     = "ubuntu16_04"
     vm_count  = 2
   }
