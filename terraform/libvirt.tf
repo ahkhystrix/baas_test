@@ -1,50 +1,34 @@
-resource "libvirt_pool" "os_images" {
-  name = "os_images"
-  type = "dir"
-  path = "/tmp/terraform-provider-libvirt-pool-os_image"
-}
-
-resource "libvirt_pool" "volumes" {
-  name = "volumes"
-  type = "dir"
-  path = "/images"
-}
-
-resource "libvirt_volume" "os_image" {
-  name   = "ubuntu-qcow2"
-  pool   = libvirt_pool.os_images.name
-  source = "https://cloud-images.ubuntu.com/releases/xenial/release/ubuntu-16.04-server-cloudimg-amd64-disk1.img"
-  format = "qcow2"
-}
-
-resource "libvirt_volume" "vm" {
-  name           = "baas-test"
-  pool           = libvirt_pool.volumes.name
-  base_volume_id = libvirt_volume.os_image.id
-  format         = "qcow2" 
-}
-
 data "template_file" "user_data" {
-  template = file("cloud_init.cfg")
+  count = var.project["vm_count"]
+
+  template = file("libvirt_cloud_init.cfg")
+  vars = {
+    ssh_authorized_key = file(var.default_ssh_authorized_key)
+  }
 }
 
 data "template_file" "network_config" {
-  template = file("network_config.cfg")
+  template = file("libvirt_network.cfg")
 }
 
 resource "libvirt_cloudinit_disk" "commoninit" {
-  name           = "commoninit.iso"
-  user_data      = data.template_file.user_data.rendered
+  count          = var.project["vm_count"]
+
+  name           = format("commoninit-%s%d.iso",
+                     var.project["vm_name"], count.index)
+  user_data      = data.template_file.user_data[count.index].rendered
   network_config = data.template_file.network_config.rendered
   pool           = libvirt_pool.os_images.name
 }
 
 resource "libvirt_domain" "vm" {
-  name   = "baas-test"
-  memory = "512"
-  vcpu   = 1
+  count  = var.project["vm_count"]
 
-  cloudinit = libvirt_cloudinit_disk.commoninit.id
+  name   = format("%s%d", var.project["vm_name"], count.index + 1)
+  vcpu   = var.project["vm_vcpu"]
+  memory = var.project["vm_memory"]
+
+  cloudinit = libvirt_cloudinit_disk.commoninit[count.index].id
 
   network_interface {
     network_name   = "default"
@@ -67,7 +51,7 @@ resource "libvirt_domain" "vm" {
   }
 
   disk {
-    volume_id = libvirt_volume.vm.id
+    volume_id = libvirt_volume.vm[count.index].id
   }
 
   graphics {
