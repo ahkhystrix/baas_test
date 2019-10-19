@@ -1,8 +1,12 @@
 ---
-  - name: Update repositories cache and install packages
+  - name: Upgrade packages
+    apt:
+      upgrade: dist
+      update_cache: yes
+
+  - name: Install packages-1
     apt:
       name: "{{ packages }}"
-      update_cache: yes
       state: present
     vars:
       packages:
@@ -11,29 +15,33 @@
       - curl
       - gnupg-agent
       - software-properties-common
-      - python-pip
+      - python3-pip
+
   - name: Add Docker’s official GPG key
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
+    
   - name: Add Docker's official repository
     apt_repository:
-      repo: "deb https://download.docker.com/linux/ubuntu xenial stable"
+      repo: "{{ docker_apt_repository }}"
       state: present
       update_cache: yes
-  - name: Update repositories cache and install packages-2
+
+  - name: Install packages-2
     apt:
       name: "{{ packages }}"
-      update_cache: yes
       state: present
     vars:
       packages:
       - docker-ce
       - docker-ce-cli
       - containerd.io
+
   - name: Install certain python modules for docker
     pip:
       name: docker-py
+
   - name: Install and start centos-xfce-vnc
     docker_container:
       name: centos-xfce-vnc

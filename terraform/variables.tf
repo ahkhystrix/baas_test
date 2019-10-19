@@ -6,7 +6,6 @@ variable "project" {
     vm_vcpu   = 1
     vm_memory = "512"
     # size in bytes
-    #vm_size   = 2968780800 
     vm_size   = 20 * 1024 * 1024 * 1024
     vm_os     = "ubuntu16_04"
     vm_count  = 2
