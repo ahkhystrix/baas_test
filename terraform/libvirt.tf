@@ -59,4 +59,21 @@ resource "libvirt_domain" "vm" {
     listen_type = "address"
     autoport    = true
   }
+
+  provisioner "local-exec" {
+    command = <<EOT
+      iptables -t nat -I PREROUTING \
+      -p tcp --dport ${ 2201 + count.index } -j DNAT \
+      --to ${ self.network_interface.0.addresses.0 }:22
+      iptables -t nat -I PREROUTING \
+      -p tcp --dport ${ 5901 + count.index } -j DNAT \
+      --to ${ self.network_interface.0.addresses.0 }:5901
+      iptables -t nat -I PREROUTING \
+      -p tcp --dport ${ 6901 + count.index } -j DNAT \
+      --to ${ self.network_interface.0.addresses.0 }:6901
+      iptables -I FORWARD -i virbr0 \
+      -d ${ self.network_interface.0.addresses.0 } -j ACCEPT
+  EOT
+  }
+
 }
